@@ -54,7 +54,7 @@ posts.sort((a, b) => +b.data.publishedAt - +a.data.publishedAt);
               </div>
             </div>
             <div class="content">
-              {post.data.showImage && <Image src={`https://release-image-generator.trueberryless.org?width=1650&height=640&text=${post.data.versionWithoutPatch}`} alt={`Release Image`} inferSize={true} class={"minor-release-image"} />}
+              {post.data.showImage && <Image src={`https://release-image-generator.trueberryless.org?width=1650&height=640&text=${post.data.versionWithoutPatch}`} alt={`Release Image`} width={1650} height={640} class={"minor-release-image"} />}
               <div set:html={post.data.descriptionHTML}/>
             </div>
           </li>

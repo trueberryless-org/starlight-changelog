@@ -25,7 +25,7 @@ const versionWithoutPatch = getVersionWithoutPatch(version);
 ---
 
 <Layout {release}>
-  {showImage && <Image src={`https://release-image-generator.trueberryless.org?width=1650&height=640&text=${versionWithoutPatch}`} alt={`Release Image`} inferSize={true} class={"minor-release-image"}/>}
+  {showImage && <Image src={`https://release-image-generator.trueberryless.org?width=1650&height=640&text=${versionWithoutPatch}`} alt={`Release Image`} width={1650} height={640} class={"minor-release-image"}/>}
   <div set:html={htmlContent} />
 </Layout>
 
