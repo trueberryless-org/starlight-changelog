@@ -13,6 +13,8 @@ const unprocessedPosts = await getCollection('releases');
 const posts = await Promise.all(
   unprocessedPosts
   .filter((post) => post.data.tagName.startsWith('@astrojs/starlight@'))
+  .sort((a, b) => +b.data.publishedAt - +a.data.publishedAt)
+  .slice(0, 10)
   .map(async (post: CollectionEntry<"releases">) => {
     const renderedHtml = await render(post.data.description);
     post.data.descriptionHTML = renderedHtml.code;
