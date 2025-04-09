@@ -1,0 +1,29 @@
+{
+  "name": "automatic-starlog",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "^6.2.0",
+    "@studiocms/markdown-remark": "^1.1.0",
+    "astro": "^5.4.1",
+    "astro-expressive-code": "^0.40.2",
+    "astro-loader-github-releases": "^2.0.0",
+    "rehype-expressive-code": "^0.40.2",
+    "rehype-parse": "^9.0.1",
+    "rehype-stringify": "^10.0.1",
+    "sass": "^1.83.4",
+    "semver": "^7.7.1",
+    "sharp": "^0.33.3",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/semver": "^7.5.8"
+  }
+}

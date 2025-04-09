@@ -1,0 +1,68 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import FormattedDate from '../components/FormattedDate.astro';
+import Layout from '../layouts/IndexLayout.astro';
+import { getSemVerFromRelease, getVersionWithoutPatch, isAtLeastMinorRelease } from '../libs/semver';
+import type { CollectionEntry } from "astro:content";
+import { render } from '../libs/markdown';
+
+const unprocessedPosts = await getCollection('releases');
+
+// Process the posts
+const posts = await Promise.all(
+  unprocessedPosts.map(async (post: CollectionEntry<"releases">) => {
+    const renderedHtml = await render(post.data.description);
+    post.data.descriptionHTML = renderedHtml.code;
+
+    const version = getSemVerFromRelease(post);
+    const showImage = isAtLeastMinorRelease(version);
+    const versionWithoutPatch = getVersionWithoutPatch(version);
+
+    return {
+      ...post,
+      data: {
+        ...post.data,
+        showImage,
+        versionWithoutPatch,
+      },
+    };
+  })
+);
+
+posts.sort((a, b) => +b.data.publishedAt - +a.data.publishedAt);
+---
+
+<Layout>
+  <main>
+    <h1 class="page_title">Changelog</h1>
+    <hr />
+    <ul class="posts" transition:name="post">
+      {
+        posts.map((post) => (
+          <li class="post">
+            <div class="version_wrapper">
+              <div class="version_info">
+                <a href={`/releases/${post.id}`}>
+                  <div class="version_number">{post.data.versionNum}</div>
+                  <FormattedDate class="date" date={new Date(post.data.publishedAt)} />
+                </a>
+              </div>
+            </div>
+            <div class="content">
+              {post.data.showImage && <Image src={`https://release-image-generator.trueberryless.org?width=1650&height=640&text=${post.data.versionWithoutPatch}`} alt={`Release Image`} inferSize={true} class={"minor-release-image"} />}
+              <div set:html={post.data.descriptionHTML}/>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </main>
+</Layout>
+
+<style>
+  .minor-release-image {
+    margin-bottom: 2rem;
+  }
+</style>
+
