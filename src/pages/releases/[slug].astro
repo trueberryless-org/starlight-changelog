@@ -8,7 +8,9 @@ import { render } from '../../libs/markdown';
 export async function getStaticPaths() {
 	const releases = await getCollection('releases');
 
-	return releases.map((release) => ({
+	return releases
+  .filter((post) => post.data.tagName.startsWith('@astrojs/starlight@'))
+  .map((release) => ({
 		params: { slug: release.id },
 		props: { release },
 	}));
