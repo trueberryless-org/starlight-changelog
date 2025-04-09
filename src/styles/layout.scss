@@ -118,6 +118,11 @@ nav {
   }
 }
 
+code {
+  white-space: break-spaces;
+  word-break: break-word;
+}
+
 .content {
   ol,
   ul {
