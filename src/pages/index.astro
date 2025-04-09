@@ -11,9 +11,13 @@ const unprocessedPosts = await getCollection('releases');
 
 // Process the posts
 const posts = await Promise.all(
-  unprocessedPosts.map(async (post: CollectionEntry<"releases">) => {
+  unprocessedPosts
+  .filter((post) => post.data.tagName.startsWith('@astrojs/starlight@'))
+  .map(async (post: CollectionEntry<"releases">) => {
     const renderedHtml = await render(post.data.description);
     post.data.descriptionHTML = renderedHtml.code;
+
+    console.log(post.data.tagName)
 
     const version = getSemVerFromRelease(post);
     const showImage = isAtLeastMinorRelease(version);

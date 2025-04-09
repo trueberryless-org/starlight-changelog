@@ -4,7 +4,7 @@ import { githubReleasesLoader } from "astro-loader-github-releases";
 const releases = defineCollection({
   loader: githubReleasesLoader({
     mode: "repoList",
-    repos: ["trueberryless-org/starlight-cooler-credit"],
+    repos: ["withastro/starlight"],
     entryReturnType: "byRelease",
   }),
 });
