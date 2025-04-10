@@ -1,0 +1,51 @@
+name: Check Starlight Releases
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Daily at 3 AM UTC
+  workflow_dispatch:
+
+jobs:
+  check-starlight-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch latest Starlight release
+        id: fetch
+        run: |
+          curl -s https://api.github.com/repos/withastro/starlight/releases/latest > starlight-latest.json
+          echo "tag_name=$(jq -r .tag_name starlight-latest.json)" >> $GITHUB_OUTPUT
+
+      - name: Load previous release
+        id: previous
+        run: |
+          if [[ -f data/starlight-latest.json ]]; then
+            echo "previous_tag=$(jq -r .tag_name data/starlight-latest.json)" >> $GITHUB_OUTPUT
+          else
+            echo "previous_tag=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if new release
+        id: compare
+        run: |
+          if [[ "${{ steps.fetch.outputs.tag_name }}" != "${{ steps.previous.outputs.previous_tag }}" ]]; then
+            echo "release_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "release_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Save new release to JSON
+        if: steps.compare.outputs.release_changed == 'true'
+        run: |
+          mkdir -p data
+          jq '{ tag_name, name, published_at, html_url }' starlight-latest.json > data/starlight-latest.json
+
+      - name: Auto-commit updated release JSON
+        if: steps.compare.outputs.release_changed == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update Starlight release to ${{ steps.fetch.outputs.tag_name }}"
+          file_pattern: data/starlight-latest.json
