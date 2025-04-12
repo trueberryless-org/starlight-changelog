@@ -9,13 +9,13 @@ importers:
   .:
     dependencies:
       '@astrojs/markdown-remark':
-        specifier: ^6.2.0
+        specifier: ^6.3.1
         version: 6.3.1
       '@studiocms/markdown-remark':
         specifier: ^1.1.0
         version: 1.2.0(astro@5.6.1(rollup@4.39.0)(sass@1.86.3)(typescript@5.8.3))(vite@6.2.5(sass@1.86.3))
       astro:
-        specifier: ^5.4.1
+        specifier: ^5.6.1
         version: 5.6.1(rollup@4.39.0)(sass@1.86.3)(typescript@5.8.3)
       astro-expressive-code:
         specifier: ^0.40.2
