@@ -1,2 +1,0 @@
-[build]
-  ignore = "bash ./ignore-branch.sh"
