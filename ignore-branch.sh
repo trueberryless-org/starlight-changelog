@@ -1,21 +1,35 @@
 #!/bin/bash
 
-# Only run for deploy previews
-if [ "$CONTEXT" = "deploy-preview" ]; then
-  echo "Deploy preview triggered for branch: $BRANCH"
+# Only care about deploy previews
+if [ "$CONTEXT" != "deploy-preview" ]; then
+  exit 1
+fi
 
-  # Fetch the remote info
-  git fetch origin "+refs/heads/*:refs/remotes/origin/*"
+# Only run this if it's a PR (not a branch deploy)
+if [ -z "$PULL_REQUEST" ]; then
+  echo "Not a pull request. Proceeding with deploy."
+  exit 1
+fi
 
-  # Get the PR target branch from the remote (HEAD of current PR)
-  BASE_BRANCH=$(git merge-base origin/$BRANCH origin/main >/dev/null 2>&1 && echo "main")
+# Branches for which PRs should NOT be deployed
+IGNORED_BASE_BRANCHES=("ignore-branch" "another-one")
 
-  # Add more branches if needed
-  if [ "$BASE_BRANCH" = "ignore-branch" ]; then
-    echo "Skipping deploy preview for PR into $BASE_BRANCH"
+# Get the base branch using GitHub API
+echo "Fetching PR #$PULL_REQUEST base branch..."
+
+BASE_BRANCH=$(curl -s -H "Authorization: token $GH_TOKEN" \
+  "https://api.github.com/repos/${REPOSITORY_URL#https://github.com/}/pulls/$PULL_REQUEST" \
+  | jq -r .base.ref)
+
+echo "Base branch of PR: $BASE_BRANCH"
+
+# Check if base branch is in the ignore list
+for IGNORE in "${IGNORED_BASE_BRANCHES[@]}"; do
+  if [ "$BASE_BRANCH" = "$IGNORE" ]; then
+    echo "Skipping deploy preview for base branch: $BASE_BRANCH"
     exit 0
   fi
-fi
+done
 
 # Continue with deploy
 exit 1
