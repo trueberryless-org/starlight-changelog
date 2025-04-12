@@ -17,8 +17,6 @@ const posts = await Promise.all(
     const renderedHtml = await render(post.data.description);
     post.data.descriptionHTML = renderedHtml.code;
 
-    console.log(post.data.tagName)
-
     const version = getSemVerFromRelease(post);
     const showImage = isAtLeastMinorRelease(version);
     const versionWithoutPatch = getVersionWithoutPatch(version);
@@ -34,7 +32,7 @@ const posts = await Promise.all(
   })
 );
 
-posts.sort((a, b) => +b.data.publishedAt - +a.data.publishedAt);
+posts.sort((a, b) => +new Date(b.data.publishedAt) - +new Date(a.data.publishedAt));
 ---
 
 <Layout>
