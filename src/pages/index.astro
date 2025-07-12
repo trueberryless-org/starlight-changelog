@@ -35,7 +35,7 @@ const posts = await Promise.all(
 posts.sort((a, b) => +new Date(b.data.publishedAt) - +new Date(a.data.publishedAt));
 ---
 
-<Layout>
+<Layout title='Starlight Changelog'>
   <main>
     <h1 class="page_title">Changelog</h1>
     <hr />
