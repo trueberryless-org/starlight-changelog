@@ -1,19 +1,23 @@
 ---
-import { getCollection } from 'astro:content';
-import { Image } from 'astro:assets';
-import Layout from '../../layouts/PostLayout.astro';
-import { getSemVerFromRelease, getVersionWithoutPatch, isAtLeastMinorRelease } from '../../libs/semver';
-import { render } from '../../libs/markdown';
+import { getCollection } from "astro:content";
+import { Image } from "astro:assets";
+import Layout from "../../layouts/PostLayout.astro";
+import {
+    getSemVerFromRelease,
+    getVersionWithoutPatch,
+    isAtLeastMinorRelease,
+} from "../../libs/semver";
+import { render } from "../../libs/markdown";
 
 export async function getStaticPaths() {
-	const releases = await getCollection('releases');
+    const releases = await getCollection("releases");
 
-	return releases
-	.filter((post) => post.data.tagName.startsWith('@astrojs/starlight@'))
-	.map((release) => ({
-		params: { slug: release.id },
-		props: { release },
-	}));
+    return releases
+        .filter((post) => post.data.tagName.startsWith("@astrojs/starlight@"))
+        .map((release) => ({
+            params: { slug: release.id },
+            props: { release },
+        }));
 }
 
 const { release } = Astro.props;
@@ -27,12 +31,22 @@ const versionWithoutPatch = getVersionWithoutPatch(version);
 ---
 
 <Layout {release}>
-  {showImage && <Image src={`https://release-image-generator.trueberryless.org?width=1650&height=640&text=${versionWithoutPatch}`} alt={`Release Image`} width={1650} height={640} class={"minor-release-image"}/>}
-  <div set:html={htmlContent} />
+    {
+        showImage && (
+            <Image
+                src={`https://release-image-generator.trueberryless.org/api/generateImage?width=1650&height=640&text=${versionWithoutPatch}`}
+                alt={`Release Image`}
+                width={1650}
+                height={640}
+                class={"minor-release-image"}
+            />
+        )
+    }
+    <div set:html={htmlContent} />
 </Layout>
 
 <style>
-  .minor-release-image {
-    margin-bottom: 2rem;
-  }
+    .minor-release-image {
+        margin-bottom: 2rem;
+    }
 </style>
