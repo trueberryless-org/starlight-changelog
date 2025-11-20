@@ -9,9 +9,9 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/markdown-remark": "^6.2.0",
+    "@astrojs/markdown-remark": "^6.3.9",
     "@studiocms/markdown-remark": "^1.1.0",
-    "astro": "^5.4.1",
+    "astro": "^5.16.0",
     "astro-expressive-code": "^0.40.2",
     "astro-loader-github-releases": "^2.0.0",
     "rehype-expressive-code": "^0.40.2",
