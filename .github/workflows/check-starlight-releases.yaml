@@ -15,39 +15,40 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fetch latest Starlight release
+      - name: Fetch latest Starlight version from NPM
         id: fetch
         run: |
-          curl -s https://api.github.com/repos/withastro/starlight/releases/latest > starlight-latest.json
-          echo "tag_name=$(jq -r .tag_name starlight-latest.json)" >> $GITHUB_OUTPUT
+          # Query NPM for the core starlight package
+          VERSION=$(curl -s https://registry.npmjs.org/@astrojs/starlight/latest | jq -r .version)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Load previous release
+      - name: Load previous version
         id: previous
         run: |
           if [[ -f data/starlight-latest.json ]]; then
-            echo "previous_tag=$(jq -r .tag_name data/starlight-latest.json)" >> $GITHUB_OUTPUT
+            echo "previous_version=$(jq -r .version data/starlight-latest.json)" >> $GITHUB_OUTPUT
           else
-            echo "previous_tag=" >> $GITHUB_OUTPUT
+            echo "previous_version=" >> $GITHUB_OUTPUT
           fi
 
-      - name: Check if new release
+      - name: Check if new version
         id: compare
         run: |
-          if [[ "${{ steps.fetch.outputs.tag_name }}" != "${{ steps.previous.outputs.previous_tag }}" ]]; then
-            echo "release_changed=true" >> $GITHUB_OUTPUT
+          if [[ "${{ steps.fetch.outputs.version }}" != "${{ steps.previous.outputs.previous_version }}" ]]; then
+            echo "version_changed=true" >> $GITHUB_OUTPUT
           else
-            echo "release_changed=false" >> $GITHUB_OUTPUT
+            echo "version_changed=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Save new release to JSON
-        if: steps.compare.outputs.release_changed == 'true'
+        if: steps.compare.outputs.version_changed == 'true'
         run: |
           mkdir -p data
-          jq '{ tag_name, name, published_at, html_url }' starlight-latest.json > data/starlight-latest.json
+          echo "{\"version\": \"${{ steps.fetch.outputs.version }}\", \"updated_at\": \"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\"}" > data/starlight-latest.json
 
       - name: Auto-commit updated release JSON
-        if: steps.compare.outputs.release_changed == 'true'
+        if: steps.compare.outputs.version_changed == 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update Starlight release to ${{ steps.fetch.outputs.tag_name }}"
+          commit_message: "Update Starlight version to ${{ steps.fetch.outputs.version }}"
           file_pattern: data/starlight-latest.json
