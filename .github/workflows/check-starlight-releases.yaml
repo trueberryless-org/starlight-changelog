@@ -18,15 +18,33 @@ jobs:
       - name: Fetch latest Starlight version from NPM
         id: fetch
         run: |
-          # Query NPM for the core starlight package
-          VERSION=$(curl -s https://registry.npmjs.org/@astrojs/starlight/latest | jq -r .version)
+          # Fetch with silent fail but check HTTP status
+          RESPONSE=$(curl -s -w "%{http_code}" https://registry.npmjs.org/@astrojs/starlight/latest)
+          HTTP_STATUS="${RESPONSE: -3}"
+          BODY="${RESPONSE:0:${#RESPONSE}-3}"
+
+          if [[ "$HTTP_STATUS" -ne 200 ]]; then
+            echo "Error: NPM registry returned status $HTTP_STATUS"
+            exit 1
+          fi
+
+          VERSION=$(echo "$BODY" | jq -r -e '.version // empty')
+
+          if [[ -z "$VERSION" || "$VERSION" == "null" ]]; then
+            echo "Error: Could not parse version from NPM response"
+            exit 1
+          fi
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Load previous version
         id: previous
         run: |
-          if [[ -f data/starlight-latest.json ]]; then
-            echo "previous_version=$(jq -r .version data/starlight-latest.json)" >> $GITHUB_OUTPUT
+          FILE="data/starlight-latest.json"
+          if [[ -f "$FILE" ]]; then
+            # Validate JSON structure and extract version
+            PREV_VERSION=$(jq -r -e '.version // empty' "$FILE" 2>/dev/null || echo "")
+            echo "previous_version=$PREV_VERSION" >> $GITHUB_OUTPUT
           else
             echo "previous_version=" >> $GITHUB_OUTPUT
           fi
@@ -34,7 +52,15 @@ jobs:
       - name: Check if new version
         id: compare
         run: |
-          if [[ "${{ steps.fetch.outputs.version }}" != "${{ steps.previous.outputs.previous_version }}" ]]; then
+          CURRENT_V="${{ steps.fetch.outputs.version }}"
+          PREVIOUS_V="${{ steps.previous.outputs.previous_version }}"
+
+          if [[ -z "$CURRENT_V" ]]; then
+            echo "Error: Current version from fetch step is empty."
+            exit 1
+          fi
+
+          if [[ "$CURRENT_V" != "$PREVIOUS_V" ]]; then
             echo "version_changed=true" >> $GITHUB_OUTPUT
           else
             echo "version_changed=false" >> $GITHUB_OUTPUT
@@ -44,11 +70,16 @@ jobs:
         if: steps.compare.outputs.version_changed == 'true'
         run: |
           mkdir -p data
-          echo "{\"version\": \"${{ steps.fetch.outputs.version }}\", \"updated_at\": \"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\"}" > data/starlight-latest.json
+          # Safely build JSON using jq
+          jq -n \
+            --arg version "${{ steps.fetch.outputs.version }}" \
+            --arg updated_at "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            '{version: $version, updated_at: $updated_at}' \
+            > data/starlight-latest.json
 
       - name: Auto-commit updated release JSON
         if: steps.compare.outputs.version_changed == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7.1.0
         with:
           commit_message: "Update Starlight version to ${{ steps.fetch.outputs.version }}"
           file_pattern: data/starlight-latest.json
