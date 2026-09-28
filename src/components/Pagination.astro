@@ -1,0 +1,44 @@
+---
+import type { Page } from "astro";
+
+import type { Release } from "../libs/release";
+
+interface Props {
+  page: Page<Release>;
+}
+
+const { page } = Astro.props;
+---
+
+{page.lastPage > 1 && (
+  <nav class="pagination" aria-label="Pagination">
+    {page.url.prev ? (
+      <a href={page.url.prev}>← Newer releases</a>
+    ) : (
+      <span></span>
+    )}
+    <span class="current">
+      Page {page.currentPage} of {page.lastPage}
+    </span>
+    {page.url.next ? (
+      <a href={page.url.next}>Older releases →</a>
+    ) : (
+      <span></span>
+    )}
+  </nav>
+)}
+
+<style>
+  .pagination {
+    margin: 0;
+    padding-block: 2rem;
+  }
+
+  .pagination a {
+    text-decoration: none;
+  }
+
+  .current {
+    font-size: 15px;
+  }
+</style>

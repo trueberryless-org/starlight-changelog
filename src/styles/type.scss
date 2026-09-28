@@ -1,7 +1,7 @@
 @use "./colors.scss" as colors;
 
-$baseFont: "Lato", sans-serif;
-$codeFont: "Source Code Pro", monospace;
+$baseFont: var(--font-lato);
+$codeFont: var(--font-source-code-pro);
 $fontSizeSmall: 15px;
 
 body {

@@ -41,9 +41,17 @@ body {
     left: calc(50% - 360px);
     width: 720px;
     height: 240px;
-    background: radial-gradient(50% 50% at 50% 50%, rgba(colors.color(orange, 500), 0.2) 0%, rgba(colors.color(orange, 500), 0) 100%);
+    background: radial-gradient(
+      50% 50% at 50% 50%,
+      rgba(colors.color(orange, 500), 0.2) 0%,
+      rgba(colors.color(orange, 500), 0) 100%
+    );
     @media (prefers-color-scheme: dark) {
-      background: radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 100%);
+      background: radial-gradient(
+        50% 50% at 50% 50%,
+        rgba(255, 255, 255, 0.06) 0%,
+        rgba(255, 255, 255, 0) 100%
+      );
     }
   }
 }
@@ -145,7 +153,11 @@ code {
         top: 0.63em;
         width: 8px;
         height: 8px;
-        background: linear-gradient(25deg, colors.color(purple, 500), colors.color(orange, 500));
+        background: linear-gradient(
+          25deg,
+          colors.color(purple, 500),
+          colors.color(orange, 500)
+        );
         border-radius: 99px;
       }
     }
@@ -154,6 +166,7 @@ code {
 
 .page_title {
   margin: 1.5em 0;
+  overflow-wrap: anywhere;
   @media (max-width: $tablet) {
     margin: 0.5em 0;
   }
@@ -244,8 +257,10 @@ code {
 
 .content {
   width: 100%;
+  min-width: 0;
   margin: 0;
   padding: 4em 0;
+  overflow-wrap: anywhere;
   border-bottom: 1px solid colors.color(gray, 100);
   @media (max-width: $tablet) {
     margin: 1em 0;
@@ -256,6 +271,16 @@ code {
   }
   *:first-child {
     margin-top: 0;
+  }
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  pre,
+  iframe,
+  video {
+    max-width: 100%;
   }
   img {
     max-width: 100%;

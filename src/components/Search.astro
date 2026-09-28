@@ -1,0 +1,257 @@
+---
+interface Props {
+  packageName: string;
+}
+
+const { packageName } = Astro.props;
+---
+
+<release-search data-package={packageName}>
+  <label class="search_label">
+    <span class="sr-only">Search {packageName} releases</span>
+    <input
+      class="search_input"
+      type="search"
+      placeholder={`Search ${packageName} releases…`}
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <kbd class="search_shortcut" aria-hidden="true">
+      /
+    </kbd>
+  </label>
+  <p class="search_status" aria-live="polite"></p>
+  <ol class="search_results"></ol>
+</release-search>
+
+<script>
+  const MAX_RESULTS = 20;
+
+  class ReleaseSearch extends HTMLElement {
+    #pagefind: Promise<Pagefind> | undefined;
+    #searchId = 0;
+
+    connectedCallback() {
+      this.#getInput()?.addEventListener("input", () => this.#search());
+      document.addEventListener("keydown", this.#focusOnShortcut);
+    }
+
+    disconnectedCallback() {
+      document.removeEventListener("keydown", this.#focusOnShortcut);
+    }
+
+    #focusOnShortcut = (event: KeyboardEvent) => {
+      if (event.key !== "/" || isEditableElement(event.target)) return;
+
+      event.preventDefault();
+      this.#getInput()?.focus();
+    };
+
+    async #search() {
+      const searchId = ++this.#searchId;
+      const query = this.#getInput()?.value.trim();
+
+      if (!query) {
+        this.#render([], "");
+        return;
+      }
+
+      try {
+        const pagefind = await this.#loadPagefind();
+        const search = await pagefind.debouncedSearch(query, {
+          filters: { package: this.dataset["package"] ?? "" },
+        });
+        if (!search) return;
+
+        const results = await Promise.all(
+          search.results.slice(0, MAX_RESULTS).map((result) => result.data())
+        );
+        if (searchId !== this.#searchId) return;
+
+        this.#render(results, getStatus(search.results.length));
+      } catch (error) {
+        if (searchId !== this.#searchId) return;
+
+        this.#pagefind = undefined;
+        this.#render([], getErrorStatus());
+        if (!import.meta.env.DEV) console.error(error);
+      }
+    }
+
+    #loadPagefind() {
+      const pagefindUrl = new URL(
+        `${import.meta.env.BASE_URL}pagefind/pagefind.js`,
+        window.location.origin
+      ).href;
+      this.#pagefind ??= import(/* @vite-ignore */ pagefindUrl);
+
+      return this.#pagefind;
+    }
+
+    #getInput() {
+      return this.querySelector("input");
+    }
+
+    #render(results: PagefindResultData[], status: string) {
+      const statusElement = this.querySelector(".search_status");
+      if (statusElement) statusElement.textContent = status;
+
+      this.querySelector(".search_results")?.replaceChildren(
+        ...results.map(createResultElement)
+      );
+    }
+  }
+
+  function isEditableElement(target: EventTarget | null) {
+    return (
+      target instanceof HTMLElement &&
+      (target.isContentEditable ||
+        ["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName))
+    );
+  }
+
+  function getStatus(count: number) {
+    if (count === 0) return "No releases found.";
+    if (count > MAX_RESULTS)
+      return `Showing ${MAX_RESULTS} of ${count} releases.`;
+
+    return count === 1 ? "1 release found." : `${count} releases found.`;
+  }
+
+  function getErrorStatus() {
+    return import.meta.env.DEV
+      ? "Search is only available in a production build."
+      : "Search is currently unavailable. Please try again later.";
+  }
+
+  function createResultElement(result: PagefindResultData) {
+    const item = document.createElement("li");
+    const link = document.createElement("a");
+    const excerpt = document.createElement("p");
+
+    link.href = result.url;
+    link.textContent = result.meta.title ?? result.url;
+    excerpt.innerHTML = result.excerpt;
+    item.append(link, excerpt);
+
+    return item;
+  }
+
+  customElements.define("release-search", ReleaseSearch);
+
+  interface Pagefind {
+    debouncedSearch(
+      query: string,
+      options: { filters: Record<string, string> }
+    ): Promise<{ results: PagefindResult[] } | null>;
+  }
+
+  interface PagefindResult {
+    data(): Promise<PagefindResultData>;
+  }
+
+  interface PagefindResultData {
+    excerpt: string;
+    meta: { title?: string };
+    url: string;
+  }
+</script>
+
+<style lang="scss">
+  @use "../styles/colors.scss" as colors;
+  @use "../styles/type.scss" as type;
+
+  release-search {
+    display: block;
+    margin-block-end: 1.5rem;
+  }
+
+  .search_label {
+    position: relative;
+    display: block;
+  }
+
+  .search_input {
+    width: 100%;
+    padding: 0.75rem 3rem 0.75rem 1rem;
+    color: inherit;
+    font: inherit;
+    background-color: transparent;
+    border: 1px solid colors.color(gray, 200);
+    border-radius: 12px;
+    @media (prefers-color-scheme: dark) {
+      border-color: colors.color(gray, 800);
+    }
+
+    &:focus {
+      outline: 2px solid colors.color(orange, 500);
+      outline-offset: 1px;
+    }
+  }
+
+  .search_shortcut {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-end: 1rem;
+    transform: translateY(-50%);
+    padding: 0 0.5rem;
+    font-family: type.$codeFont;
+    font-size: type.$fontSizeSmall;
+    border: 1px solid colors.color(gray, 200);
+    border-radius: 6px;
+    pointer-events: none;
+    @media (prefers-color-scheme: dark) {
+      border-color: colors.color(gray, 800);
+    }
+  }
+
+  .search_status {
+    margin: 0.5rem 0 0;
+    font-size: type.$fontSizeSmall;
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  .search_results {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    :global(li) {
+      padding-block: 1rem;
+      border-bottom: 1px solid colors.color(gray, 100);
+      @media (prefers-color-scheme: dark) {
+        border-color: colors.color(gray, 900);
+      }
+    }
+
+    :global(a) {
+      font-family: type.$codeFont;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    :global(p) {
+      margin: 0.25rem 0 0;
+    }
+
+    :global(mark) {
+      color: inherit;
+      background-color: colors.color(orange, 200);
+      @media (prefers-color-scheme: dark) {
+        background-color: colors.color(orange, 800);
+      }
+    }
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

@@ -1,0 +1,50 @@
+---
+import { Image } from "astro:assets";
+import { render } from "astro:content";
+
+import {
+  getReleaseDate,
+  getReleaseImage,
+  getReleasePath,
+  type Release,
+} from "../libs/release";
+
+import FormattedDate from "./FormattedDate.astro";
+
+interface Props {
+  isLink?: boolean;
+  release: Release;
+}
+
+const { isLink = false, release } = Astro.props;
+
+const { Content } = await render(release);
+const date = getReleaseDate(release);
+const image = getReleaseImage(release);
+---
+
+<div class="version_wrapper">
+  <div class="version_info">
+    {isLink ? (
+      <a href={getReleasePath(release)}>
+        <div class="version_number">{release.data.version}</div>
+        <FormattedDate class="date" {date} />
+      </a>
+    ) : (
+      <>
+        <div class="version_number">{release.data.version}</div>
+        <FormattedDate class="date" {date} />
+      </>
+    )}
+  </div>
+</div>
+<div class="content">
+  {image && <Image {...image} class="minor-release-image" />}
+  <Content />
+</div>
+
+<style>
+  .minor-release-image {
+    margin-bottom: 2rem;
+  }
+</style>

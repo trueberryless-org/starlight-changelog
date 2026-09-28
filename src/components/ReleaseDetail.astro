@@ -1,0 +1,21 @@
+---
+import type { Release as ReleaseEntry } from "../libs/release";
+
+import Release from "./Release.astro";
+
+interface Props {
+  release: ReleaseEntry;
+}
+
+const { release } = Astro.props;
+---
+
+<div
+  class="post single"
+  transition:name="post"
+  data-pagefind-body
+  data-pagefind-filter={`package:${release.data.packageName}`}
+  data-pagefind-meta={`title:${release.id}`}
+>
+  <Release {release} />
+</div>
