@@ -2,8 +2,11 @@ name: Check Starlight Releases
 
 on:
   schedule:
-    - cron: '0 3 * * *'  # Daily at 3 AM UTC
+    - cron: "0 3 * * *" # Daily at 3 AM UTC
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   check-starlight-release:
@@ -13,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Fetch latest Starlight version from NPM
         id: fetch
@@ -79,7 +82,7 @@ jobs:
 
       - name: Auto-commit updated release JSON
         if: steps.compare.outputs.version_changed == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v7.1.0
+        uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7.2.0
         with:
           commit_message: "Update Starlight version to ${{ steps.fetch.outputs.version }}"
           file_pattern: data/starlight-latest.json

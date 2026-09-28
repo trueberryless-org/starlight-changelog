@@ -1,12 +1,9 @@
-import { defineCollection, z } from "astro:content";
-import { githubReleasesLoader } from "astro-loader-github-releases";
+import { defineCollection } from "astro:content";
+
+import { githubReleasesLoader } from "./libs/loader";
 
 const releases = defineCollection({
-  loader: githubReleasesLoader({
-    mode: "repoList",
-    repos: ["withastro/starlight"],
-    entryReturnType: "byRelease",
-  }),
+  loader: githubReleasesLoader(),
 });
 
 export const collections = { releases };

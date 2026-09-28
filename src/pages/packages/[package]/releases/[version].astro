@@ -1,0 +1,34 @@
+---
+import type { GetStaticPaths, InferGetStaticPropsType } from "astro";
+
+import {
+  isStarlightPackage,
+  packageNameToSlug,
+} from "../../../../libs/package";
+import { getReleaseDescription, getReleases } from "../../../../libs/release";
+
+import ReleaseDetail from "../../../../components/ReleaseDetail.astro";
+import Layout from "../../../../layouts/Layout.astro";
+
+export const getStaticPaths = (async () => {
+  const releases = await getReleases();
+
+  return releases
+    .filter((release) => !isStarlightPackage(release.data.packageName))
+    .map((release) => ({
+      params: {
+        package: packageNameToSlug(release.data.packageName),
+        version: release.data.version,
+      },
+      props: { release },
+    }));
+}) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { release } = Astro.props;
+---
+
+<Layout title={release.id} description={getReleaseDescription(release)}>
+  <ReleaseDetail {release} />
+</Layout>

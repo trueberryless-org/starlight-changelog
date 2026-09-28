@@ -1,0 +1,84 @@
+---
+import { getPackages, getReleaseDate } from "../../libs/release";
+
+import FormattedDate from "../../components/FormattedDate.astro";
+import Layout from "../../layouts/Layout.astro";
+
+const packages = await getPackages();
+---
+
+<Layout
+  title="Packages | Starlight Changelog"
+  description="View the releases of every package published from the Starlight repository."
+>
+  <main>
+    <h1 class="page_title">Packages</h1>
+    <hr />
+    <ul class="packages">
+      {packages.map((releasePackage) => (
+        <li>
+          <a href={releasePackage.path}>{releasePackage.name}</a>
+          <span class="version_number">
+            {releasePackage.latestRelease.data.version}
+          </span>
+          <FormattedDate
+            class="package_date"
+            date={getReleaseDate(releasePackage.latestRelease)}
+          />
+        </li>
+      ))}
+    </ul>
+  </main>
+</Layout>
+
+<style lang="scss">
+  @use "../../styles/colors.scss" as colors;
+  @use "../../styles/type.scss" as type;
+
+  $tablet: 768px;
+
+  .packages {
+    margin: 0 0 2rem;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: grid;
+      grid-template-columns: 1fr auto 8rem;
+      align-items: center;
+      gap: 0.5rem 1rem;
+      padding-block: 1rem;
+      border-bottom: 1px solid colors.color(gray, 100);
+      @media (max-width: $tablet) {
+        grid-template-columns: auto 1fr;
+      }
+      @media (prefers-color-scheme: dark) {
+        border-color: colors.color(gray, 900);
+      }
+    }
+
+    a {
+      font-family: type.$codeFont;
+      font-weight: 700;
+      text-decoration: none;
+      overflow-wrap: anywhere;
+      @media (max-width: $tablet) {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .version_number {
+      justify-self: start;
+      margin: 0;
+    }
+  }
+
+  .package_date {
+    font-family: type.$codeFont;
+    font-size: type.$fontSizeSmall;
+    text-align: end;
+    @media (max-width: $tablet) {
+      text-align: start;
+    }
+  }
+</style>

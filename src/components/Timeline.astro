@@ -1,0 +1,41 @@
+---
+import type { Page } from "astro";
+
+import { splitPackageScope } from "../libs/package";
+import type { Release as ReleaseEntry } from "../libs/release";
+
+import Pagination from "./Pagination.astro";
+import Release from "./Release.astro";
+import Search from "./Search.astro";
+
+interface Props {
+  packageName: string;
+  page: Page<ReleaseEntry>;
+  title: string;
+}
+
+const { packageName, page, title } = Astro.props;
+
+const titleSegments = splitPackageScope(title);
+---
+
+<main>
+  <h1 class="page_title">
+    {titleSegments.map((segment, index) => (
+      <>
+        {index > 0 && <wbr />}
+        {segment}
+      </>
+    ))}
+  </h1>
+  <Search {packageName} />
+  <hr />
+  <ul class="posts" transition:name="post">
+    {page.data.map((release) => (
+      <li class="post">
+        <Release isLink {release} />
+      </li>
+    ))}
+  </ul>
+  <Pagination {page} />
+</main>

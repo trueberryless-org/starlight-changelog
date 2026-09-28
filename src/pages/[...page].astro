@@ -1,0 +1,23 @@
+---
+import type { GetStaticPaths, InferGetStaticPropsType } from "astro";
+
+import { STARLIGHT_PACKAGE_NAME } from "../libs/package";
+import { getPackageReleases, RELEASES_PER_PAGE } from "../libs/release";
+
+import Timeline from "../components/Timeline.astro";
+import Layout from "../layouts/Layout.astro";
+
+export const getStaticPaths = (async ({ paginate }) => {
+  return paginate(await getPackageReleases(STARLIGHT_PACKAGE_NAME), {
+    pageSize: RELEASES_PER_PAGE,
+  });
+}) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { page } = Astro.props;
+---
+
+<Layout title="Starlight Changelog">
+  <Timeline packageName={STARLIGHT_PACKAGE_NAME} {page} title="Changelog" />
+</Layout>
